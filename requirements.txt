@@ -2,3 +2,4 @@ beautifulsoup4
 requests
 json5
 pandas
+streamlit
