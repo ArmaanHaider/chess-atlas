@@ -21,3 +21,7 @@ if search:
             results.append(row) #searching for tournaments that match the search query and appending them to a list
 
     df_copy = pd.DataFrame(results) #creating a new dataframe with the search results
+
+if not df_copy.empty:
+    st.subheader("Search Results")
+    st.dataframe(df_copy) #displaying the search results in a dataframe
