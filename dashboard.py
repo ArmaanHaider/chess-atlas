@@ -12,12 +12,17 @@ col1.metric("Total Tournaments", len(df)) #Finding total number of tournaments i
 col2.metric("cities",df["city"].nunique()) #Finding total unique cities in database 
 st.divider() #Adds horizontal line
 
-search = st.text_input("Search for a tournament by name") #search for tournaments by name
+search_by = st.selectbox("Search by", ["Name", "City"]) #searching for tournaments by name, city   
+search = st.text_input("Search for a tournament by name, city") #Name or city of the tournament to search for
 df_copy = df.copy() #creating a copy of the dataframe to avoid changing the original dataframe
+if search_by == "Name":
+    column = "name"
+elif search_by == "City":
+    column = "city"
 if search:
     results = []
     for index, row in df_copy.iterrows():
-        if search.lower() in row["name"].lower():
+        if search.lower() in row.astype(str).str.lower().to_string(): #converts row to a long string to check if the search is present in the row
             results.append(row) #searching for tournaments that match the search query and appending them to a list
 
     df_copy = pd.DataFrame(results) #creating a new dataframe with the search results
