@@ -29,4 +29,5 @@ if search:
 
 if not df_copy.empty:
     st.subheader("Search Results")
-    st.dataframe(df_copy) #displaying the search results in a dataframe
+    display_df = df_copy.drop(columns=["links","dates","oid"]) #creating new df which removes unwanted columns
+    st.dataframe(display_df, column_config={"url":st.column_config.LinkColumn("url", display_text = "Tournament Link")}) #displaying the search results in a table format and making link clickable
