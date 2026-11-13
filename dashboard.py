@@ -2,6 +2,7 @@ import sqlite3
 import pandas as pd
 import streamlit as st
 
+
 #Creating dashboard using streamlit
 st.set_page_config(page_title="Chess Tournaments Dashboard", layout="wide")
 st.title("Chess Tournaments Dashboard")
@@ -27,7 +28,9 @@ if search:
 
     df_copy = pd.DataFrame(results) #creating a new dataframe with the search results
 
+details = pd.read_csv("tournament_details.csv") #reading the csv file to get the tournament details
+
 if not df_copy.empty:
     st.subheader("Search Results")
     display_df = df_copy.drop(columns=["links","dates","oid"]) #creating new df which removes unwanted columns
-    st.dataframe(display_df, column_config={"url":st.column_config.LinkColumn("url", display_text = "Tournament Link")}) #displaying the search results in a table format and making link clickable
+    st.dataframe(display_df.merge(details, on="url", how="left"), column_config={"url":st.column_config.LinkColumn("url", display_text = "Tournament Link")}) #displaying the search results in a table format and making link clickable
