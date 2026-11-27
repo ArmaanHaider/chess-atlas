@@ -106,46 +106,69 @@ def tournament_calendar(data):
 
 
 with tab1:
-    col1, col2 = st.columns(2) # dividing dashboard into 2 equally spaced columns
+    col1, col2= st.columns(2) # dividing dashboard into 2 equally spaced columns
     col1.metric("Total Tournaments",len(df)) #Finding total number of tournaments in database
     col2.metric("Cities",df["city"].nunique()) #Finding total unique cities in database
     st.divider() #Adds horizontal line
 
     st.subheader("Find a Tournament") #Finding a tournament by name or city
-    search_by = st.selectbox("Search by",["Name", "City"])
-    search = st.text_input("Enter tournament name or city")
-    
-    df_copy = df.copy()
+    search_name = st.text_input("Enter tournament name")
+    col1, col2, col3= st.columns(3) 
+    with col1:
+        cities = ["All"] + sorted(df["city"].dropna().unique().tolist()) #adding 3 searches for city, province and type
+        selected_city = st.selectbox("City", cities)
 
-    # Select the column to search
-    if search_by == "Name":
-        search_column = "name"
-    else:
-        search_column = "city"
+    with col2:
+        provinces = ["All"] + sorted(df["prov"].dropna().unique().tolist())
+        selected_province = st.selectbox("Province", provinces)
 
-    # Filter results
-    if search:
-        df_copy = df_copy[df_copy[search_column].astype(str).str.contains(search, case=False, na=False)] #Searching for tournaments by name or city in the database
+    with col3:
+        types = ["All"] + sorted(df["type"].dropna().unique().tolist())
+        selected_type = st.selectbox("Tournament Type", types)
 
-    
-    if not df_copy.empty:
-    # Merge additional details using tournament URL
-        display_df = df_copy.merge(
-            details,
-            on="url",
-            how="left",
-            suffixes=("", "_details")
-        )
+    status_options = ["All", "Upcoming", "Ongoing", "Completed"]
+    selected_status = st.selectbox("Tournament Status", status_options) #Date status filter
+
+    filtered_df = df.copy()
+
+    if search_name:
+        filtered_df = filtered_df[filtered_df["name"].str.contains(search_name, case=False, na=False)]
+
+    if selected_city != "All":
+        filtered_df = filtered_df[filtered_df["city"] == selected_city]
+
+    if selected_province != "All":
+        filtered_df = filtered_df[filtered_df["prov"] == selected_province]
+
+    if selected_type != "All":
+        filtered_df = filtered_df[filtered_df["type"] == selected_type] #Simultaneously filter with many filters
+
+    #Date status filtering 
+    today = pd.Timestamp.today().normalize()
+
+    filtered_df["start"] = pd.to_datetime(filtered_df["start"], errors="coerce")
+    filtered_df["end"] = pd.to_datetime(filtered_df["end"], errors="coerce")
+
+    if selected_status == "Upcoming":
+        filtered_df = filtered_df[filtered_df["start"] > today]
+
+    elif selected_status == "Ongoing":
+        filtered_df = filtered_df[(filtered_df["start"] <= today) &(filtered_df["end"] >= today)]
+
+    elif selected_status == "Completed":
+        filtered_df = filtered_df[filtered_df["end"] < today] 
+
+    st.subheader(f"Search Results ({len(filtered_df)} tournaments)")
 
     # Remove unnecessary columns if they exist
-    display_df = display_df.drop(
+    filtered_df = filtered_df.drop(
         columns=["links", "dates", "oid"],
         errors="ignore"
     )
 
     # Make tournament links clickable
     st.dataframe(
-        display_df,
+        filtered_df,
         column_config={
             "url": st.column_config.LinkColumn("Tournament Link",display_text="Open Tournament")
             },
